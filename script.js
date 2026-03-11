@@ -5,21 +5,8 @@ const SUPABASE_URL = (typeof __supabase_url !== 'undefined') ? __supabase_url : 
 const SUPABASE_KEY = (typeof __supabase_key !== 'undefined') ? __supabase_key : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtYW55b2JlaWFkamZwbndyemt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxMzI4OTEsImV4cCI6MjA3OTcwODg5MX0.CDRCDpbuscHFPx4XD-HT73btAZAazugZWePegTRv6iM';
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-// createClient detection
-let createClientFn = null;
-if (window.supabase && typeof window.supabase.createClient === 'function') {
-    createClientFn = window.supabase.createClient;
-} else if (window.Supabase && typeof window.Supabase.createClient === 'function') {
-    createClientFn = window.Supabase.createClient;
-} else if (window.createClient) {
-    createClientFn = window.createClient;
-}
-
-if (!createClientFn) {
-    console.error('Supabase createClient not found. Make sure the supabase script loaded correctly.');
-}
-
-const supabase = createClientFn ? createClientFn(SUPABASE_URL, SUPABASE_KEY) : null;
+const { createClient } = window.supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Constants
 const TABLE_NAME = 'boards';
@@ -35,7 +22,7 @@ let lastMutationId = null;
  * INITIALIZATION
  */
 async function init() {
-    if (!supabase) {
+    if (!supabaseClient) {
         document.getElementById('loading-spinner').innerText = 'Supabase not initialized';
         return;
     }
@@ -61,14 +48,14 @@ function setupBoard() {
 async function connectToBoard(boardId) {
     if (realtimeChannel) {
         try {
-            if (typeof supabase.removeChannel === 'function') supabase.removeChannel(realtimeChannel);
+            if (typeof supabaseClient.removeChannel === 'function') supabaseClient.removeChannel(realtimeChannel);
             else if (typeof realtimeChannel.unsubscribe === 'function') realtimeChannel.unsubscribe();
         } catch (e) { console.warn(e); }
         realtimeChannel = null;
     }
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from(TABLE_NAME)
             .select('board_data,settings,created_at')
             .eq('id', boardId)
@@ -97,7 +84,7 @@ async function connectToBoard(boardId) {
 
     // Subscribe to realtime changes
     try {
-        realtimeChannel = supabase.channel('public:boards:' + boardId)
+        realtimeChannel = supabaseClient.channel('public:boards:' + boardId)
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: TABLE_NAME, filter: `id=eq.${boardId}` },
@@ -145,7 +132,7 @@ async function initializeNewBoard(boardId) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
-        await supabase.from(TABLE_NAME).insert([row]).select().single();
+        await supabaseClient.from(TABLE_NAME).insert([row]).select().single();
         console.log('New board initialized');
     } catch (err) {
         console.error('Error inserting new board', err);
@@ -153,7 +140,7 @@ async function initializeNewBoard(boardId) {
 }
 
 async function saveToFirebase() {
-    if (!supabase || !currentBoardId) return;
+    if (!supabaseClient || !currentBoardId) return;
 
     document.getElementById('sync-status').classList.remove('hidden');
 
@@ -171,7 +158,7 @@ async function saveToFirebase() {
     };
 
     try {
-        const { error } = await supabase.from(TABLE_NAME).upsert(payload, { returning: 'minimal' });
+        const { error } = await supabaseClient.from(TABLE_NAME).upsert(payload, { returning: 'minimal' });
         if (error) {
             console.error('Save failed', error);
             showToast('Failed to save changes', 'red');
@@ -857,7 +844,7 @@ async function checkAndJoinBoard() {
     inputs.forEach(i => i.disabled = true);
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from(TABLE_NAME)
             .select('id')
             .eq('id', code)
@@ -1114,7 +1101,7 @@ async function deleteBoardAction() {
         "Attention : Ce projet sera effacé pour tout le monde. Cette action est irréversible.", 
         async () => {
             // 1. Suppression dans Supabase
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from(TABLE_NAME)
                 .delete()
                 .eq('id', currentBoardId);
@@ -1147,5 +1134,6 @@ function removeFromHistory(boardId) {
     history = history.filter(h => h.id !== boardId);
     localStorage.setItem('tralalero_history', JSON.stringify(history));
 }
+
 
 init();
