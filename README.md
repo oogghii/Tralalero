@@ -1,4 +1,4 @@
-# 🎨 Tralalero Tralala
+# 🎨 Tralalero Tralala - Vibecoded btw
 
 > **"Trello... Mais en mieux !"**
 
