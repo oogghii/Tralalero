@@ -461,12 +461,31 @@ function renderBoard() {
             const descIndicator = card.description ? `<i class="ph ph-text-align-left text-slate-400" title="Has description"></i>` : '';
             const selectionCheckbox = isSelected ? `<div class="selection-checkbox"><i class="ph-bold ph-check"></i></div>` : '';
 
+            // Date Badge
+            let dateHtml = '';
+            if (card.dueDate) {
+                const dateObj = new Date(card.dueDate);
+                const isOverdue = dateObj < new Date();
+                
+                // Format: "19 mai, 14:30"
+                const dateString = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                const timeString = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                
+                const colorClass = isOverdue ? 'bg-red-50 text-red-600 border-red-100' : 'bg-slate-50 text-slate-500 border-slate-100';
+                dateHtml = `<div class="flex items-center gap-1.5 px-2 py-0.5 rounded border ${colorClass} text-[10px] font-bold">
+                    <i class="ph ph-calendar-blank"></i> ${dateString}, ${timeString}
+                </div>`;
+            }
+
             cardEl.innerHTML = `
                 ${selectionCheckbox}
                 ${labelsHtml}
                 <div class="whitespace-pre-wrap break-words pr-6 font-medium text-slate-800">${card.content}</div>
-                <div class="flex items-center justify-between mt-1">
-                    <div class="flex items-center gap-2">${descIndicator}</div>
+                <div class="flex items-center justify-between mt-2">
+                    <div class="flex items-center gap-2">
+                        ${dateHtml}
+                        ${descIndicator}
+                    </div>
                     ${membersHtml}
                 </div>
                 <button onclick="event.stopPropagation(); openEditModal('${card.id}', '${col.id}')" class="absolute top-2 right-2 text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 bg-white/80 rounded-full p-1 transition ${isSelectMode ? 'hidden' : ''}">
@@ -640,6 +659,7 @@ function openEditModal(cardId, colId) {
 
     document.getElementById('modal-title-input').value = card.content;
     document.getElementById('modal-desc-input').value = card.description || '';
+    document.getElementById('modal-date-input').value = card.dueDate || '';
     document.getElementById('modal-list-name').innerText = col.title;
     renderModalSidebars();
     document.getElementById('modal-overlay').classList.remove('hidden');
@@ -665,6 +685,7 @@ function saveCardFromModal() {
     const card = col.cards.find(c => c.id === currentEditCardId);
     card.content = document.getElementById('modal-title-input').value.trim() || "Untitled";
     card.description = document.getElementById('modal-desc-input').value.trim();
+    card.dueDate = document.getElementById('modal-date-input').value;
     card.labels = tempLabels; card.members = tempMembers;
     saveToFirebase(); closeModal(null, true);
     renderBoard(); // Update UI immediately
@@ -1264,6 +1285,7 @@ function processImport() {
         cardsToImport.forEach(item => {
             const content = item.content || item.title || item.text || "Sans titre";
             const desc = item.description || item.desc || "";
+            const dueDate = item.dueDate || item.date || item.deadline || "";
             
             // Handle List / Column
             const colTitle = item.list || item.column || item.status || (boardData[0] ? boardData[0].title : "Importations");
@@ -1318,6 +1340,7 @@ function processImport() {
                 id: 'card-' + generateId(),
                 content: content,
                 description: desc,
+                dueDate: dueDate,
                 labels: cardLabelIds,
                 members: cardMemberIds
             });
