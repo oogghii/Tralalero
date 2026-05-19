@@ -1250,8 +1250,6 @@ function processImport() {
 
     try {
         const importedData = JSON.parse(jsonText);
-        
-        // Validation basique : on attend un tableau d'objets ou un objet unique
         const cardsToImport = Array.isArray(importedData) ? importedData : [importedData];
         
         if (cardsToImport.length === 0) {
@@ -1259,31 +1257,86 @@ function processImport() {
             return;
         }
 
-        // On ajoute les cartes à la première colonne par défaut
-        if (boardData.length === 0) {
-            // Créer une colonne si aucune n'existe
-            boardData.push({ id: 'col-' + generateId(), title: 'Importations', cards: [] });
-        }
-        
-        const targetCol = boardData[0];
+        let newLabelsCreated = 0;
+        let newMembersCreated = 0;
+        let newColsCreated = 0;
         
         cardsToImport.forEach(item => {
             const content = item.content || item.title || item.text || "Sans titre";
             const desc = item.description || item.desc || "";
             
+            // Handle List / Column
+            const colTitle = item.list || item.column || item.status || (boardData[0] ? boardData[0].title : "Importations");
+            let targetCol = boardData.find(c => c.title.toLowerCase() === colTitle.toString().toLowerCase());
+            
+            if (!targetCol) {
+                targetCol = { id: 'col-' + generateId(), title: colTitle.toString(), cards: [] };
+                boardData.push(targetCol);
+                newColsCreated++;
+            }
+
+            // Handle Labels
+            const labelNames = item.labels || item.tags || [];
+            const cardLabelIds = [];
+            (Array.isArray(labelNames) ? labelNames : [labelNames]).forEach(lName => {
+                if (!lName) return;
+                let label = (settings.labels || []).find(l => l.name.toLowerCase() === lName.toString().toLowerCase());
+                if (!label) {
+                    const colorKeys = Object.keys(LABEL_COLORS);
+                    const randomColor = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+                    label = { id: 'l-' + generateId(), name: lName.toString(), colorName: randomColor };
+                    if (!settings.labels) settings.labels = [];
+                    settings.labels.push(label);
+                    newLabelsCreated++;
+                }
+                cardLabelIds.push(label.id);
+            });
+
+            // Handle Members
+            const memberNames = item.members || item.users || [];
+            const cardMemberIds = [];
+            (Array.isArray(memberNames) ? memberNames : [memberNames]).forEach(mName => {
+                if (!mName) return;
+                let member = (settings.members || []).find(m => m.name.toLowerCase() === mName.toString().toLowerCase());
+                if (!member) {
+                    const avatarKeys = Object.keys(AVATAR_COLORS);
+                    const randomColor = avatarKeys[Math.floor(Math.random() * avatarKeys.length)];
+                    member = { 
+                        id: 'm-' + generateId(), 
+                        name: mName.toString(), 
+                        initials: getInitials(mName.toString()), 
+                        colorName: randomColor 
+                    };
+                    if (!settings.members) settings.members = [];
+                    settings.members.push(member);
+                    newMembersCreated++;
+                }
+                cardMemberIds.push(member.id);
+            });
+            
             targetCol.cards.push({
                 id: 'card-' + generateId(),
                 content: content,
                 description: desc,
-                labels: [],
-                members: []
+                labels: cardLabelIds,
+                members: cardMemberIds
             });
         });
 
         saveToFirebase();
         renderBoard();
         closeImportModal(null, true);
-        showToast(`${cardsToImport.length} cartes importées !`, "green");
+        
+        let msg = `${cardsToImport.length} cartes importées !`;
+        const extra = [];
+        if (newColsCreated > 0) extra.push(`${newColsCreated} listes`);
+        if (newLabelsCreated > 0) extra.push(`${newLabelsCreated} étiquettes`);
+        if (newMembersCreated > 0) extra.push(`${newMembersCreated} membres`);
+        
+        if (extra.length > 0) {
+            msg += ` (${extra.join(', ')} créés)`;
+        }
+        showToast(msg, "green");
 
     } catch (e) {
         console.error("Import error:", e);
