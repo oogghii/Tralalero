@@ -18,6 +18,10 @@ let settings = {};
 let realtimeChannel = null; 
 let lastMutationId = null; 
 
+// Selection State
+let isSelectMode = false;
+let selectedCards = []; // Array of { cardId, colId }
+
 /**
  * INITIALIZATION
  */
@@ -369,7 +373,7 @@ function renderBoard() {
         colEl.setAttribute('data-col-id', col.id);
         
         // --- DRAG & DROP FOR COLUMNS ---
-        colEl.draggable = true;
+        colEl.draggable = !isSelectMode;
         colEl.addEventListener('dragstart', handleColDragStart);
         colEl.addEventListener('dragend', handleColDragEnd);
         colEl.addEventListener('dragover', handleDragOver);
@@ -378,19 +382,20 @@ function renderBoard() {
 
         colEl.innerHTML = `
             <div class="bg-white/20 backdrop-blur-md rounded-xl shadow-lg flex flex-col max-h-full border border-white/40">
-                <div class="p-3 flex justify-between items-start gap-2 cursor-grab active:cursor-grabbing group">
+                <div class="p-3 flex justify-between items-start gap-2 ${isSelectMode ? '' : 'cursor-grab active:cursor-grabbing'} group">
                     <textarea 
                         onblur="updateColumnTitle('${col.id}', this.value)" 
                         onkeydown="if(event.key === 'Enter') { this.blur(); event.preventDefault(); }"
                         class="bg-transparent font-bold text-slate-700 w-full resize-none h-7 overflow-hidden focus:bg-white focus:px-1 focus:ring-2 focus:ring-blue-500 rounded text-sm truncate leading-7"
                         rows="1"
+                        ${isSelectMode ? 'disabled' : ''}
                     >${col.title}</textarea>
-                    <button onclick="deleteColumn('${col.id}')" class="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-slate-200">
+                    <button onclick="deleteColumn('${col.id}')" class="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-slate-200 ${isSelectMode ? 'hidden' : ''}">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>
                 <div class="flex-1 overflow-y-auto px-2 pb-2 custom-scrollbar" id="cards-${col.id}"></div>
-                <div class="p-2 pt-0">
+                <div class="p-2 pt-0 ${isSelectMode ? 'hidden' : ''}">
                      <div id="add-card-btn-${col.id}">
                         <button onclick="showAddCardInput('${col.id}')" class="w-full text-left text-slate-600 hover:bg-white/60 hover:text-slate-900 p-2 rounded-lg transition flex items-center gap-2 text-sm font-medium">
                             <i class="ph ph-plus"></i> Ajouter une carte
@@ -412,11 +417,18 @@ function renderBoard() {
 
         const cardsContainer = colEl.querySelector(`#cards-${col.id}`);
         col.cards.forEach(card => {
+            const isSelected = selectedCards.some(s => s.cardId === card.id);
             const cardEl = document.createElement('div');
-            cardEl.className = 'group relative bg-white p-3 rounded-lg shadow-sm border border-slate-200 mb-2 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-blue-300 transition-all text-sm text-slate-700 select-none';
-            cardEl.draggable = true;
+            cardEl.className = `group relative bg-white p-3 rounded-lg shadow-sm border border-slate-200 mb-2 transition-all text-sm text-slate-700 select-none ${isSelectMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'} ${isSelected ? 'card-selected' : ''}`;
+            cardEl.draggable = !isSelectMode;
             cardEl.setAttribute('data-card-id', card.id);
             cardEl.setAttribute('data-col-id', col.id);
+
+            cardEl.onclick = (e) => {
+                if (isSelectMode) {
+                    toggleCardSelection(card.id, col.id);
+                }
+            };
 
             // Labels
             let labelsHtml = '';
@@ -447,15 +459,17 @@ function renderBoard() {
             }
 
             const descIndicator = card.description ? `<i class="ph ph-text-align-left text-slate-400" title="Has description"></i>` : '';
+            const selectionCheckbox = isSelected ? `<div class="selection-checkbox"><i class="ph-bold ph-check"></i></div>` : '';
 
             cardEl.innerHTML = `
+                ${selectionCheckbox}
                 ${labelsHtml}
                 <div class="whitespace-pre-wrap break-words pr-6 font-medium text-slate-800">${card.content}</div>
                 <div class="flex items-center justify-between mt-1">
                     <div class="flex items-center gap-2">${descIndicator}</div>
                     ${membersHtml}
                 </div>
-                <button onclick="openEditModal('${card.id}', '${col.id}')" class="absolute top-2 right-2 text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 bg-white/80 rounded-full p-1 transition">
+                <button onclick="event.stopPropagation(); openEditModal('${card.id}', '${col.id}')" class="absolute top-2 right-2 text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 bg-white/80 rounded-full p-1 transition ${isSelectMode ? 'hidden' : ''}">
                     <i class="ph ph-pencil-simple"></i>
                 </button>
             `;
@@ -465,6 +479,83 @@ function renderBoard() {
             cardsContainer.appendChild(cardEl);
         });
     });
+}
+
+/**
+ * SELECTION MODE LOGIC
+ */
+function toggleSelectMode() {
+    isSelectMode = !isSelectMode;
+    const btn = document.getElementById('select-mode-btn');
+    const text = document.getElementById('select-mode-text');
+    
+    if (isSelectMode) {
+        btn.classList.add('bg-blue-600', 'text-white');
+        btn.classList.remove('bg-white/20');
+        text.innerText = 'Quitter la sélection';
+        showToast('Mode sélection activé', 'blue');
+    } else {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-white/20');
+        text.innerText = 'Sélectionner';
+        cancelSelection();
+    }
+    renderBoard();
+}
+
+function toggleCardSelection(cardId, colId) {
+    const index = selectedCards.findIndex(s => s.cardId === cardId);
+    if (index > -1) {
+        selectedCards.splice(index, 1);
+    } else {
+        selectedCards.push({ cardId, colId });
+    }
+    updateBulkActionsBar();
+    renderBoard();
+}
+
+function updateBulkActionsBar() {
+    const bar = document.getElementById('bulk-actions-bar');
+    const countEl = document.getElementById('selected-count');
+    
+    if (selectedCards.length > 0) {
+        bar.classList.remove('translate-y-20', 'opacity-0');
+        countEl.innerText = selectedCards.length;
+    } else {
+        bar.classList.add('translate-y-20', 'opacity-0');
+    }
+}
+
+function cancelSelection() {
+    selectedCards = [];
+    updateBulkActionsBar();
+    if (isSelectMode) {
+        // Optionnel : on peut rester en mode sélection mais vider la liste
+    }
+    renderBoard();
+}
+
+function bulkDeleteCards() {
+    if (selectedCards.length === 0) return;
+    
+    showConfirm(
+        `Supprimer ${selectedCards.length} cartes ?`,
+        `Cette action supprimera définitivement toutes les cartes sélectionnées.`,
+        () => {
+            selectedCards.forEach(selection => {
+                const col = boardData.find(c => c.id === selection.colId);
+                if (col) {
+                    col.cards = col.cards.filter(card => card.id !== selection.cardId);
+                }
+            });
+            
+            selectedCards = [];
+            updateBulkActionsBar();
+            saveToFirebase();
+            renderBoard();
+            showToast('Cartes supprimées', 'green');
+        }
+    );
 }
 
 /**
@@ -1135,5 +1226,69 @@ function removeFromHistory(boardId) {
     localStorage.setItem('tralalero_history', JSON.stringify(history));
 }
 
+
+/**
+ * IMPORT JSON LOGIC
+ */
+function openImportModal() {
+    document.getElementById('import-json-input').value = '';
+    document.getElementById('import-modal').classList.remove('hidden');
+}
+
+function closeImportModal(e, force) {
+    if (force || e.target.id === 'import-modal') {
+        document.getElementById('import-modal').classList.add('hidden');
+    }
+}
+
+function processImport() {
+    const jsonText = document.getElementById('import-json-input').value.trim();
+    if (!jsonText) {
+        showToast("Veuillez coller du JSON", "red");
+        return;
+    }
+
+    try {
+        const importedData = JSON.parse(jsonText);
+        
+        // Validation basique : on attend un tableau d'objets ou un objet unique
+        const cardsToImport = Array.isArray(importedData) ? importedData : [importedData];
+        
+        if (cardsToImport.length === 0) {
+            showToast("Aucune carte trouvée", "red");
+            return;
+        }
+
+        // On ajoute les cartes à la première colonne par défaut
+        if (boardData.length === 0) {
+            // Créer une colonne si aucune n'existe
+            boardData.push({ id: 'col-' + generateId(), title: 'Importations', cards: [] });
+        }
+        
+        const targetCol = boardData[0];
+        
+        cardsToImport.forEach(item => {
+            const content = item.content || item.title || item.text || "Sans titre";
+            const desc = item.description || item.desc || "";
+            
+            targetCol.cards.push({
+                id: 'card-' + generateId(),
+                content: content,
+                description: desc,
+                labels: [],
+                members: []
+            });
+        });
+
+        saveToFirebase();
+        renderBoard();
+        closeImportModal(null, true);
+        showToast(`${cardsToImport.length} cartes importées !`, "green");
+
+    } catch (e) {
+        console.error("Import error:", e);
+        showToast("JSON invalide. Vérifiez le format.", "red");
+    }
+}
 
 init();
