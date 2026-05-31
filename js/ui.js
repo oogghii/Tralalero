@@ -1,4 +1,4 @@
-﻿/**
+/**
  * UI.JS
  * Generic UI utilities: toast notifications, confirm dialog,
  * share modal, and pure helper functions (generateId, getInitials).
@@ -84,6 +84,16 @@ function showToast(msg, color = 'green') {
     }
 
     toast.classList.remove('opacity-0', 'translate-y-4');
+
+    // Animate the progress bar
+    const bar = document.getElementById('toast-progress');
+    if (bar) {
+        bar.style.animation = 'none';
+        bar.offsetHeight; // reflow to restart
+        bar.style.width = '100%';
+        bar.style.animation = 'toastDrain 3s linear forwards';
+    }
+
     setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-4');
     }, 3000);
@@ -307,9 +317,8 @@ function renderIdentityColorPicker() {
     container.innerHTML = Object.keys(AVATAR_COLORS).map(color => {
         const bg = AVATAR_COLORS[color];
         const isSelected = selectedIdentityColor === color;
-        const ring = isSelected ? 'ring-2 ring-indigo-500 ring-offset-2' : '';
         return `
-            <button onclick="selectedIdentityColor='${color}'; renderIdentityColorPicker()" class="w-6 h-6 rounded-full ${bg} ${ring} transition shadow-sm"></button>
+            <button onclick="selectedIdentityColor='${color}'; renderIdentityColorPicker()" title="${color}" class="si-swatch ${bg} ${isSelected ? 'si-swatch--active' : ''}"></button>
         `;
     }).join('');
 }

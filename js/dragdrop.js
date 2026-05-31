@@ -1,4 +1,4 @@
-﻿/**
+/**
  * DRAGDROP.JS
  * Drag & drop handlers for both cards and columns using SortableJS.
  */
@@ -57,12 +57,14 @@ function initSortable() {
     const cardContainers = document.querySelectorAll('div[id^="cards-"]');
     cardContainers.forEach(container => {
         const s = new Sortable(container, {
-            group: 'shared', // set both lists to same group
+            group: 'shared',
             animation: 350,
             easing: "cubic-bezier(0.25, 1, 0.5, 1)",
-            ghostClass: 'opacity-40', // style for the empty space
-            dragClass: 'rotate-2', // style for the dragging item
-            delay: 50, // Slight delay to prevent accidental drags when clicking
+            ghostClass: 'opacity-40',
+            dragClass: 'rotate-2',
+            filter: '.col-empty-state',
+            preventOnFilter: true,
+            delay: 50,
             delayOnTouchOnly: true,
             onEnd: function (evt) {
                 const itemEl = evt.item;  // dragged HTMLElement
@@ -98,6 +100,17 @@ function initSortable() {
                     
                     if (typeof logBoardActivity === 'function') {
                         logBoardActivity(`a déplacé la carte "${card.content}" de "${sCol.title}" vers "${dCol.title}"`, card.id, dCol.id);
+                    }
+
+                    // Confetti when dropped into a "done" type column
+                    const doneKeywords = /\b(fait|done|termin[eé]|fini|compl[eé]t[eé]|completed|finished|achev[eé])\b/i;
+                    if (doneKeywords.test(dCol.title) && typeof confetti === 'function') {
+                        confetti({
+                            particleCount: 120,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            colors: ['#3b82f6', '#8b5cf6', '#22c55e', '#f97316', '#ec4899']
+                        });
                     }
                 } else if (evt.oldIndex !== evt.newIndex) {
                     if (typeof logBoardActivity === 'function') {

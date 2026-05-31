@@ -20,6 +20,10 @@ let recentMutations  = new Set();
 let isSelectMode  = false;
 let selectedCards = []; // [{ cardId, colId }]
 
+// ─── Column UI State ─────────────────────────────────────────────────────────
+let collapsedCols = new Set(); // column IDs that are collapsed
+let lastNewCardId = null;      // card ID that should animate in
+
 // ─── Filter State ────────────────────────────────────────────────────────────
 let filterText     = '';
 let filterMemberId = '';

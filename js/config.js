@@ -48,15 +48,12 @@ const defaultSettings = {
 };
 
 // ─── Label Color System ──────────────────────────────────────────────────────
-//
-// LABEL_COLOR_CONFIG  — full rich config used by the settings panel
-// LABEL_COLORS        — derived backward-compatible map used by render.js cards
 
 const LABEL_COLOR_CONFIG = {
-    'red':      { classes: 'bg-red-100 text-red-700 border-red-200',             dot: 'bg-red-400',      name: 'Rouge'      },
-    'orange':   { classes: 'bg-orange-100 text-orange-700 border-orange-200',    dot: 'bg-orange-400',   name: 'Orange'     },
-    'amber':    { classes: 'bg-amber-100 text-amber-700 border-amber-200',       dot: 'bg-amber-400',    name: 'Ambre'      },
-    'yellow':   { classes: 'bg-yellow-100 text-yellow-700 border-yellow-200',    dot: 'bg-yellow-400',   name: 'Jaune'      },
+    'red':      { classes: 'bg-red-100 text-red-700 border-red-200',             dot: 'bg-red-500',      name: 'Rouge'      },
+    'orange':   { classes: 'bg-orange-100 text-orange-700 border-orange-200',    dot: 'bg-orange-500',   name: 'Orange'     },
+    'amber':    { classes: 'bg-amber-100 text-amber-700 border-amber-200',       dot: 'bg-amber-500',    name: 'Ambre'      },
+    'yellow':   { classes: 'bg-yellow-100 text-yellow-700 border-yellow-200',    dot: 'bg-yellow-500',   name: 'Jaune'      },
     'lime':     { classes: 'bg-lime-100 text-lime-700 border-lime-200',          dot: 'bg-lime-500',     name: 'Citron'     },
     'green':    { classes: 'bg-green-100 text-green-700 border-green-200',       dot: 'bg-green-500',    name: 'Vert'       },
     'emerald':  { classes: 'bg-emerald-100 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500',  name: 'Émeraude'   },
@@ -66,10 +63,9 @@ const LABEL_COLOR_CONFIG = {
     'blue':     { classes: 'bg-blue-100 text-blue-700 border-blue-200',          dot: 'bg-blue-500',     name: 'Bleu'       },
     'indigo':   { classes: 'bg-indigo-100 text-indigo-700 border-indigo-200',    dot: 'bg-indigo-500',   name: 'Indigo'     },
     'violet':   { classes: 'bg-violet-100 text-violet-700 border-violet-200',    dot: 'bg-violet-500',   name: 'Violet'     },
-    'purple':   { classes: 'bg-purple-100 text-purple-700 border-purple-200',    dot: 'bg-purple-500',   name: 'Mauve'      },
-    'pink':     { classes: 'bg-pink-100 text-pink-700 border-pink-200',          dot: 'bg-pink-400',     name: 'Rose'       },
-    'rose':     { classes: 'bg-rose-100 text-rose-700 border-rose-200',          dot: 'bg-rose-400',     name: 'Framboise'  },
-    'gray':     { classes: 'bg-slate-100 text-slate-600 border-slate-200',       dot: 'bg-slate-400',    name: 'Gris'       },
+    'pink':     { classes: 'bg-pink-100 text-pink-700 border-pink-200',          dot: 'bg-pink-500',     name: 'Rose'       },
+    'rose':     { classes: 'bg-rose-100 text-rose-700 border-rose-200',          dot: 'bg-rose-500',     name: 'Framboise'  },
+    'slate':    { classes: 'bg-slate-100 text-slate-600 border-slate-200',       dot: 'bg-slate-500',    name: 'Gris'       },
 };
 
 /** Backward-compatible map: colorName → CSS classes string (used by card badges) */
@@ -81,22 +77,26 @@ const LABEL_COLORS = Object.fromEntries(
 //
 // AVATAR_COLOR_CONFIG — full config used by the settings panel
 // AVATAR_COLORS       — derived backward-compatible map used by render.js cards
+//
+// Shares the same color order as LABEL_COLOR_CONFIG for visual coherence.
 
 const AVATAR_COLOR_CONFIG = {
-    'blue':    { bg: 'bg-blue-500',    name: 'Bleu'       },
-    'emerald': { bg: 'bg-emerald-500', name: 'Émeraude'   },
-    'violet':  { bg: 'bg-violet-500',  name: 'Violet'     },
-    'amber':   { bg: 'bg-amber-500',   name: 'Ambre'      },
-    'rose':    { bg: 'bg-rose-500',    name: 'Framboise'  },
-    'cyan':    { bg: 'bg-cyan-500',    name: 'Cyan'       },
-    'slate':   { bg: 'bg-slate-500',   name: 'Ardoise'    },
-    'orange':  { bg: 'bg-orange-500',  name: 'Orange'     },
-    'teal':    { bg: 'bg-teal-500',    name: 'Sarcelle'   },
-    'pink':    { bg: 'bg-pink-500',    name: 'Rose vif'   },
-    'indigo':  { bg: 'bg-indigo-500',  name: 'Indigo'     },
-    'lime':    { bg: 'bg-lime-500',    name: 'Citron'     },
     'red':     { bg: 'bg-red-500',     name: 'Rouge'      },
+    'orange':  { bg: 'bg-orange-500',  name: 'Orange'     },
+    'amber':   { bg: 'bg-amber-500',   name: 'Ambre'      },
+    'yellow':  { bg: 'bg-yellow-500',  name: 'Jaune'      },
+    'lime':    { bg: 'bg-lime-500',    name: 'Citron'     },
+    'green':   { bg: 'bg-green-500',   name: 'Vert'       },
+    'emerald': { bg: 'bg-emerald-500', name: 'Émeraude'   },
+    'teal':    { bg: 'bg-teal-500',    name: 'Sarcelle'   },
+    'cyan':    { bg: 'bg-cyan-500',    name: 'Cyan'       },
     'sky':     { bg: 'bg-sky-500',     name: 'Ciel'       },
+    'blue':    { bg: 'bg-blue-500',    name: 'Bleu'       },
+    'indigo':  { bg: 'bg-indigo-500',  name: 'Indigo'     },
+    'violet':  { bg: 'bg-violet-500',  name: 'Violet'     },
+    'pink':    { bg: 'bg-pink-500',    name: 'Rose'       },
+    'rose':    { bg: 'bg-rose-500',    name: 'Framboise'  },
+    'slate':   { bg: 'bg-slate-500',   name: 'Gris'       },
 };
 
 /** Backward-compatible map: colorName → bg class string (used by avatars) */

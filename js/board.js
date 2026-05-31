@@ -189,6 +189,7 @@ function addCard(colId) {
         timestamp: new Date().toISOString()
     });
 
+    lastNewCardId = newCard.id; // trigger pop-in animation
     renderBoard();
     saveToSupabase();
     hideAddCardInput(colId);

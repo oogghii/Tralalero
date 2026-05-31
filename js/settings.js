@@ -206,8 +206,7 @@ function renderNewMemberColorPicker() {
         const active = selected === key;
         return `<button type="button" onclick="selectNewMemberColor('${key}')"
             title="${cfg.name}"
-            class="w-6 h-6 rounded-full ${cfg.bg} transition-all ring-2 ring-offset-1
-                   ${active ? 'ring-blue-500 scale-110' : 'ring-transparent hover:scale-110'}">
+            class="si-swatch ${cfg.bg} ${active ? 'si-swatch--active' : ''}">
         </button>`;
     }).join('');
 }

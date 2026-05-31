@@ -40,7 +40,6 @@ async function connectToBoard(boardId, skipInitialRender = false) {
 
             document.getElementById('loading-spinner').classList.add('hidden');
             document.getElementById('add-col-container').classList.remove('hidden');
-            if (typeof checkAndPromptIdentity === 'function') checkAndPromptIdentity();
 
             if (data) {
                 boardData = data.board_data || [];
@@ -66,6 +65,9 @@ async function connectToBoard(boardId, skipInitialRender = false) {
             showToast('Erreur de connexion au serveur', 'red');
         }
     }
+
+    // Always prompt for identity (new board or joined board)
+    if (typeof checkAndPromptIdentity === 'function') checkAndPromptIdentity();
 
     // ─── Subscribe to realtime changes ───────────────────────────────────────
     try {

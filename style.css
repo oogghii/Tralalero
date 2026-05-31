@@ -1,46 +1,52 @@
-﻿/* Inter font is loaded via <link> in index.html â€” no duplicate @import needed */
+/* Inter font is loaded via <link> in index.html — no duplicate @import needed */
 
 body {
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
-    /* Image de fond */
     background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* Fixe le fond pour qu'il ne bouge pas au scroll */
+    background-attachment: fixed;
 }
 
 /* --- SCROLLBARS --- */
 
-/* Scrollbar horizontale cachée mais fonctionnelle (pour les colonnes) */
 .scrollbar-hide::-webkit-scrollbar { height: 12px; }
 .scrollbar-hide::-webkit-scrollbar-track { background: transparent; }
-.scrollbar-hide::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
-.scrollbar-hide::-webkit-scrollbar-thumb:hover { background-color: rgba(107, 114, 128, 0.8); }
+.scrollbar-hide::-webkit-scrollbar-thumb { background-color: rgba(156,163,175,.5); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+.scrollbar-hide::-webkit-scrollbar-thumb:hover { background-color: rgba(107,114,128,.8); }
 
-/* Scrollbar fine pour les listes verticales (cartes, historique) */
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 10px; }
-.custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: rgba(107, 114, 128, 0.8); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156,163,175,.5); border-radius: 10px; }
+.custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: rgba(107,114,128,.8); }
 
-/* Fix pour permettre le défilement global de la page */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: rgba(156,163,175,.5); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(107,114,128,.8); }
+::-webkit-scrollbar-corner { background: transparent; }
+
+@supports not selector(::-webkit-scrollbar) {
+    html { scrollbar-width: auto; scrollbar-color: rgba(255,255,255,.3) rgba(255,255,255,.05); }
+    .custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(59,130,246,.3) rgba(0,0,0,.02); }
+}
+
+/* --- LAYOUT --- */
+
 [data-col-id] {
     height: fit-content !important;
     max-height: none !important;
     display: flex;
     flex-direction: column;
 }
-
-[data-col-id] > div {
-    max-height: none !important;
-}
+[data-col-id] > div { max-height: none !important; }
 
 #board {
     align-items: flex-start;
-    padding-bottom: 120px; /* Plus d'espace pour la barre d'actions fixe */
-    min-width: max-content; /* Force le board à s'étendre selon le nombre de colonnes */
+    padding-bottom: 120px;
+    min-width: max-content;
 }
 
 header {
@@ -51,10 +57,8 @@ header {
     z-index: 50 !important;
 }
 
-
-
 html {
-    font-size: 125%; /* Équivalent à un zoom de 125% pour toutes les classes Tailwind (rem) */
+    font-size: 125%;
     overflow-x: hidden;
 }
 
@@ -65,47 +69,10 @@ main {
     overflow-x: auto !important;
 }
 
-/* Force l'affichage permanent des scrollbars sur Chrome/Safari */
-::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
+/* --- CARD SELECTION --- */
 
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
-    border-radius: 10px;
-    border: 3px solid transparent;
-    background-clip: padding-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(107, 114, 128, 0.8);
-}
-
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-/* Fallback Firefox / Non-WebKit scrollbars targeting standard properties */
-@supports not selector(::-webkit-scrollbar) {
-    html {
-        scrollbar-width: auto;
-        scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);
-    }
-    .custom-scrollbar {
-        scrollbar-width: thin;
-        scrollbar-color: rgba(59, 130, 246, 0.3) rgba(0, 0, 0, 0.02);
-    }
-}
-
-/* SÃ©lection de cartes */
 .card-selected {
     border-color: #3b82f6 !important;
-    /* FIX: removed invalid 'ring: 2px' â€” box-shadow already handles the ring effect */
     box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6, 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
     transform: translateY(-2px);
 }
@@ -129,66 +96,46 @@ main {
 
 @keyframes popIn {
     from { transform: scale(0); }
-    to { transform: scale(1); }
+    to   { transform: scale(1); }
 }
 
 /* --- DRAG & DROP --- */
-.dragging { 
-    opacity: 0.5; 
-    transform: rotate(2deg) scale(0.95); 
-    cursor: grabbing;
-}
-.card-ghost { 
-    background: rgba(241, 245, 249, 0.4); 
-    border: 2px dashed #94a3b8; 
-    border-radius: 0.5rem; 
-    margin-bottom: 0.75rem; 
-    height: 80px; 
-}
 
+.dragging { opacity: 0.5; transform: rotate(2deg) scale(0.95); cursor: grabbing; }
+.card-ghost { background: rgba(241,245,249,.4); border: 2px dashed #94a3b8; border-radius: .5rem; margin-bottom: .75rem; height: 80px; }
 
 /* --- MODAL DISPLAY FIX ---
-   Modals use .hidden to be invisible. When .hidden is removed,
-   they need to become flex containers. The .modal class ensures that.
-   Tailwind's .hidden sets display:none which wins over .modal's flex. */
-.modal {
-    display: flex;
-}
+   Tailwind's .hidden sets display:none which beats .modal's flex.
+   Removing .hidden from a .modal element reveals it as flex. */
+.modal { display: flex; }
 
 /* --- GLASSMORPHISM --- */
-.glass { 
-    background: rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(12px); 
-    -webkit-backdrop-filter: blur(12px); 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+.glass {
+    background: rgba(255,255,255,.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,.1);
 }
 
 
-/* â”€â”€â”€ SETTINGS PANEL  (si-* = "settings item") â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── SETTINGS PANEL  (si-* = "settings item") ─────────────────────────────── */
 
-/* Card wrapper */
+/* Card wrapper — solid white with visible border + shadow so it pops off the modal */
 .si-card {
     background: #fff;
-    border: 1px solid #e9ecef;
+    border: 1px solid #d1d5db;
     border-radius: 10px;
     overflow: hidden;
     transition: border-color .15s, box-shadow .15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
-.si-card:hover { border-color: #c8d0da; }
-.si-card--open {
-    border-color: #93c5fd;
-    box-shadow: 0 0 0 3px rgba(147,197,253,.25);
-}
+.si-card:hover { border-color: #93c5fd; box-shadow: 0 2px 8px rgba(59,130,246,.12); }
+.si-card--open { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
 
 /* Main row */
-.si-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-}
+.si-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
 
-/* Label name as a coloured badge */
+/* Label name badge */
 .si-badge {
     display: inline-flex;
     align-items: center;
@@ -204,11 +151,11 @@ main {
     text-overflow: ellipsis;
 }
 
-/* Member name */
+/* Member name — dark and bold so it reads clearly */
 .si-name {
     font-size: .875rem;
-    font-weight: 600;
-    color: #1e293b;
+    font-weight: 700;
+    color: #0f172a;
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -216,7 +163,7 @@ main {
     white-space: nowrap;
 }
 
-/* Inline rename input (replaces badge or name) */
+/* Inline rename input */
 .si-rename-input {
     flex: 1;
     min-width: 0;
@@ -224,13 +171,13 @@ main {
     border-bottom: 2px solid #3b82f6;
     background: transparent;
     font-size: .875rem;
-    font-weight: 600;
-    color: #1e293b;
+    font-weight: 700;
+    color: #0f172a;
     outline: none;
     padding: 1px 2px;
 }
 
-/* Clickable colour dot (labels) */
+/* Colour dot (labels) */
 .si-dot {
     width: 18px;
     height: 18px;
@@ -240,10 +187,10 @@ main {
     border: 2px solid transparent;
     transition: transform .15s, box-shadow .15s;
 }
-.si-dot:hover { transform: scale(1.25); box-shadow: 0 2px 4px rgba(0,0,0,.18); }
+.si-dot:hover { transform: scale(1.25); box-shadow: 0 2px 4px rgba(0,0,0,.25); }
 .si-dot--active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
 
-/* Clickable avatar (members) */
+/* Avatar (members) */
 .si-avatar {
     width: 32px;
     height: 32px;
@@ -259,24 +206,24 @@ main {
     border: 2px solid transparent;
     transition: transform .15s, box-shadow .15s;
 }
-.si-avatar:hover { transform: scale(1.1); box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.si-avatar:hover { transform: scale(1.1); box-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .si-avatar--active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
 
-/* Usage count pill */
+/* Usage count pill — clearly visible, not washed-out */
 .si-count {
     margin-left: auto;
     font-size: 11px;
-    font-weight: 600;
-    color: #94a3b8;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    font-weight: 700;
+    color: #475569;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
     padding: 1px 7px;
     border-radius: 999px;
     flex-shrink: 0;
     white-space: nowrap;
 }
 
-/* Icon action button */
+/* Icon action buttons — visible even at rest */
 .si-btn {
     width: 28px;
     height: 28px;
@@ -284,38 +231,30 @@ main {
     align-items: center;
     justify-content: center;
     border-radius: 6px;
-    color: #94a3b8;
+    color: #64748b;
     font-size: 14px;
     transition: color .12s, background .12s;
     flex-shrink: 0;
 }
-.si-btn:hover       { background: #f1f5f9; color: #3b82f6; }
-.si-btn--active     { background: #eff6ff; color: #3b82f6; }
-.si-btn--danger:hover { background: #fef2f2; color: #ef4444; }
+.si-btn:hover         { background: #e2e8f0; color: #1e40af; }
+.si-btn--active       { background: #dbeafe; color: #2563eb; }
+.si-btn--danger:hover { background: #fee2e2; color: #dc2626; }
 
 /* Expanded panel below the row */
-.si-panel {
-    padding: 10px 12px 12px;
-    background: #f8fafc;
-    border-top: 1px solid #e9ecef;
-}
+.si-panel { padding: 10px 12px 12px; background: #f1f5f9; border-top: 1px solid #e2e8f0; }
 .si-panel-label {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .06em;
-    color: #94a3b8;
+    color: #64748b;
     margin-bottom: 6px;
 }
-/* Two-column layout for member panel (initials | colour) */
-.si-panel-grid {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 16px;
-    align-items: start;
-}
 
-/* Initials input â€” styled to look like the avatar */
+/* Two-column layout for member panel (initials | colour) */
+.si-panel-grid { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
+
+/* Initials input */
 .si-initials-input {
     width: 48px;
     height: 48px;
@@ -334,7 +273,7 @@ main {
 .si-initials-input:focus { box-shadow: 0 0 0 3px rgba(255,255,255,.6), 0 0 0 5px #3b82f6; }
 
 /* Colour swatch grid */
-.si-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.si-swatches { display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; }
 .si-swatch {
     width: 22px;
     height: 22px;
@@ -344,21 +283,12 @@ main {
     transition: transform .12s, box-shadow .12s;
 }
 .si-swatch:hover { transform: scale(1.2); }
-.si-swatch--active {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6;
-    transform: scale(1.1);
-}
+.si-swatch--active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; transform: scale(1.1); }
 
-/* Empty state text */
-.si-empty {
-    text-align: center;
-    color: #94a3b8;
-    font-size: .75rem;
-    font-style: italic;
-    padding: 12px 0;
-}
+/* Empty state */
+.si-empty { text-align: center; color: #94a3b8; font-size: .75rem; font-style: italic; padding: 12px 0; }
 
-/* "Add new" form (dashed box) */
+/* Add-new form */
 .settings-add-form {
     background: #f8fafc;
     border: 1.5px dashed #cbd5e1;
@@ -370,74 +300,93 @@ main {
 
 /* --- ANIMATIONS --- */
 
-/* 1. FADE IN (Pour le fond noir des modales) - Pas de mouvement, juste opacitÃ© */
-.animate-fade-in {
-    animation: fadeInOverlay 0.2s ease-out forwards;
-}
-
+.animate-fade-in { animation: fadeInOverlay 0.2s ease-out forwards; }
 @keyframes fadeInOverlay {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
 }
 
-/* 2. POP IN (Pour le contenu des modales) - Zoom et petit rebond */
-.animate-pop-in {
-    animation: popInContent 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
+.animate-pop-in { animation: popInContent 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes popInContent {
-    from { 
-        opacity: 0; 
-        transform: scale(0.92) translateY(10px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: scale(1) translateY(0); 
-    }
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* 3. FADE IN UP (Pour la Landing Page) - Apparition vers le haut */
-.animate-fade-in-up {
-    animation: fadeInUp 0.6s ease-out forwards;
-}
-
+.animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
 @keyframes fadeInUp {
-    from { 
-        opacity: 0; 
-        transform: translateY(20px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* 4. FADE IN DOWN (Pour le dropdown Historique) - DÃ©roulement */
-.animate-fade-in-down {
-    animation: fadeInDown 0.2s ease-out forwards;
-}
-
+.animate-fade-in-down { animation: fadeInDown 0.2s ease-out forwards; }
 @keyframes fadeInDown {
-    from { 
-        opacity: 0; 
-        transform: translateY(-10px) scale(0.98); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0) scale(1); 
-    }
+    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 5. GRADIENT ANIMÃ‰ (Fond de la Landing Page) */
-.animate-gradient-xy {
-    background-size: 200% 200%;
-    animation: gradientXY 15s ease infinite;
-}
-
+.animate-gradient-xy { background-size: 200% 200%; animation: gradientXY 15s ease infinite; }
 @keyframes gradientXY {
     0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    50%       { background-position: 100% 50%; }
 }
 
 
+/* --- EMPTY COLUMN STATE --- */
+.col-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 12px;
+    border: 1.5px dashed rgba(100, 116, 139, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(4px);
+    color: #475569;
+    font-size: .75rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 4px 0;
+    transition: border-color .2s, background .2s;
+}
+.col-empty-state:hover {
+    border-color: rgba(100, 116, 139, 0.6);
+    background: rgba(255, 255, 255, 0.7);
+}
 
+/* --- ACTIVE FILTER CHIPS --- */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 6px 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    animation: popInContent 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.filter-chip button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    color: #fff;
+    transition: background .15s;
+    flex-shrink: 0;
+}
+.filter-chip button:hover { background: rgba(239,68,68,.6); }
+
+/* --- TOAST PROGRESS BAR --- */
+@keyframes toastDrain {
+    from { width: 100%; }
+    to   { width: 0%; }
+}
+.toast-progress-bar { width: 100%; }

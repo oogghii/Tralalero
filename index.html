@@ -23,6 +23,9 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
     <!-- App Styles -->
     <link href="style.css?v=2" rel="stylesheet">
 </head>
@@ -74,6 +77,9 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Active filter chips -->
+            <div id="active-filter-chips" class="hidden flex items-center gap-1.5 flex-wrap"></div>
 
             <button id="chat-btn" onclick="toggleChat()"
                 class="relative flex items-center gap-2 text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded transition font-medium text-white backdrop-blur-md border border-white/10 shadow-sm">
@@ -225,9 +231,11 @@
 
     <!-- ═══════════════════════════════════════════════════════════ TOAST -->
     <div id="toast"
-        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 transition-all duration-300 opacity-0 translate-y-4 z-[100] pointer-events-none">
+        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 transition-all duration-300 opacity-0 translate-y-4 z-[100] pointer-events-none overflow-hidden">
         <i class="ph-fill ph-check-circle text-green-400"></i>
         <span id="toast-message" class="text-sm font-medium">Action réussie</span>
+        <!-- Progress bar -->
+        <div id="toast-progress" class="absolute bottom-0 left-0 h-0.5 bg-white/30 rounded-full toast-progress-bar"></div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════ CONFIRM MODAL -->
