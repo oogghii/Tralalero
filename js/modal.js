@@ -230,7 +230,7 @@ function addComment() {
     const text = input.value.trim();
     if (!text) return;
     
-    const authorId = typeof getCurrentIdentity === 'function' ? getCurrentIdentity() : 'anonymous';
+    const authorId = getAuthorId();
     
     const comment = {
         id: 'cmt-' + generateId(),
@@ -265,7 +265,7 @@ function removeComment(id) {
 
 // ─── Activity Log ────────────────────────────────────────────────────────────
 function logActivity(actionDesc) {
-    const authorId = typeof getCurrentIdentity === 'function' ? getCurrentIdentity() : 'anonymous';
+    const authorId = getAuthorId();
     
     if (typeof tempActivities === 'undefined') tempActivities = [];
     

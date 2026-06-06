@@ -179,8 +179,7 @@ function addCard(colId) {
     };
     col.cards.push(newCard);
     
-    // Attempt to figure out who created it if there's a global filter or just anonymous
-    const authorId = typeof getCurrentIdentity === 'function' ? (getCurrentIdentity() || 'anonymous') : 'anonymous';
+    const authorId = getAuthorId();
     
     newCard.activity.push({
         id: 'act-' + generateId(),
@@ -201,7 +200,7 @@ function logCardActivity(cardId, colId, actionDesc) {
     const card = col.cards.find(c => c.id === cardId);
     if (!card) return;
     
-    const authorId = typeof getCurrentIdentity === 'function' ? (getCurrentIdentity() || 'anonymous') : 'anonymous';
+    const authorId = getAuthorId();
 
     if (!card.activity) card.activity = [];
     card.activity.unshift({
@@ -210,7 +209,8 @@ function logCardActivity(cardId, colId, actionDesc) {
         authorId,
         timestamp: new Date().toISOString()
     });
-    
+    if (card.activity.length > 50) card.activity = card.activity.slice(0, 50);
+
     saveToSupabase();
 }
 
@@ -258,9 +258,6 @@ function toggleChat() {
         widget.classList.remove('translate-y-[150%]', 'opacity-0', 'pointer-events-none');
         widget.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
         
-        // Populate the chat author select based on current settings
-        
-        
         if (typeof renderChat === 'function') renderChat();
         
         updateChatBadge();
@@ -283,7 +280,7 @@ function sendChatMessage() {
     const text = input.value.trim();
     if (!text) return;
     
-    const authorId = typeof getCurrentIdentity === 'function' ? getCurrentIdentity() : 'anonymous';
+    const authorId = getAuthorId();
     
     if (!settings.chat) settings.chat = [];
     
@@ -294,7 +291,8 @@ function sendChatMessage() {
         clientId: localClientId,
         timestamp: new Date().toISOString()
     });
-    
+    if (settings.chat.length > 200) settings.chat = settings.chat.slice(-200);
+
     input.value = '';
     
     if (typeof renderChat === 'function') renderChat();
@@ -314,7 +312,7 @@ function sendChatMessage() {
 function logBoardActivity(actionDesc, cardId = null, colId = null) {
     if (!settings.activityLog) settings.activityLog = [];
     
-    const authorId = typeof getCurrentIdentity === 'function' ? getCurrentIdentity() : 'anonymous';
+    const authorId = getAuthorId();
 
     const activity = {
         id: 'act-' + generateId(),

@@ -88,7 +88,7 @@ function initSortable() {
 
                 // Activity log if moved between columns
                 if (sourceColId !== destColId) {
-                    const authorId = typeof getCurrentIdentity === 'function' ? getCurrentIdentity() : 'anonymous';
+                    const authorId = getAuthorId();
 
                     if (!card.activity) card.activity = [];
                     card.activity.unshift({
@@ -97,6 +97,7 @@ function initSortable() {
                         authorId,
                         timestamp: new Date().toISOString()
                     });
+                    if (card.activity.length > 50) card.activity = card.activity.slice(0, 50);
                     
                     if (typeof logBoardActivity === 'function') {
                         logBoardActivity(`a déplacé la carte "${card.content}" de "${sCol.title}" vers "${dCol.title}"`, card.id, dCol.id);

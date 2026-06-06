@@ -6,12 +6,6 @@
  *   - Create new board
  *   - Board history (localStorage)
  *   - Leave / delete board
- *
- * Fixes applied:
- *  - leaveBoard() uses history.pushState to avoid trailing '#' in URL (#9)
- *  - History click-outside handler has null-check guard (#8)
- *  - createNewBoardAction passes skipInitialRender=true to avoid
- *    double-rendering race condition (#7)
  */
 
 // ─── OTP Inputs ───────────────────────────────────────────────────────────────
@@ -157,7 +151,6 @@ async function createNewBoardAction() {
 
     try {
         await initializeNewBoard(newId);
-        // FIX #7 — skipInitialRender=true so we don't clobber the already-rendered UI
         connectToBoard(newId, true);
     } catch (e) {
         console.error('Erreur lors de la création initiale :', e);
@@ -216,7 +209,7 @@ function selectHistoryItem(boardId) {
     loadFromHistory(boardId);
 }
 
-// Close dropdown when clicking outside — FIX #8: null-checks added
+// Close dropdown when clicking outside
 window.addEventListener('click', function (e) {
     const container = document.getElementById('history-container');
     const dropdown  = document.getElementById('history-dropdown');
@@ -240,11 +233,6 @@ function loadFromHistory(val) {
 
 // ─── Leave / Delete Board ─────────────────────────────────────────────────────
 
-/**
- * Returns to the landing page.
- * FIX #9 — uses history.pushState instead of setting hash='', which avoids
- * leaving a trailing '#' in the browser URL bar.
- */
 function leaveBoard() {
     history.pushState('', document.title, window.location.pathname);
     window.location.reload();

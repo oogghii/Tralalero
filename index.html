@@ -209,23 +209,163 @@
             <button onclick="closeImportModal(null, true)" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition z-10 bg-white/70 rounded-full p-1 hover:bg-red-50">
                 <i class="ph ph-x text-xl"></i>
             </button>
-            
+
+            <!-- Header -->
             <div class="pt-8 pb-4 px-8 text-center flex-shrink-0">
                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-blue-500/30">
                     <i class="ph-fill ph-file-arrow-up text-2xl"></i>
                 </div>
                 <h3 class="text-xl font-bold text-slate-800 mb-1">Importer des cartes</h3>
-                <p class="text-sm text-slate-400">Collez votre JSON ci-dessous pour importer des cartes.</p>
+                <p class="text-sm text-slate-400">Collez un JSON pour ajouter ou mettre à jour votre tableau en un clic.</p>
             </div>
-            
-            <div class="px-8 pb-8 overflow-y-auto custom-scrollbar flex-1">
-                <textarea id="import-json-input"
-                    class="w-full h-64 p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-slate-700 font-mono text-xs mb-6"
-                    placeholder='[&#10;  { "content": "Ma super carte", "description": "Détails..." },&#10;  { "content": "Une autre carte" }&#10;]'></textarea>
+
+            <!-- Body -->
+            <div class="px-6 pb-6 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+
+                <!-- AI prompt block -->
+                <div class="rounded-2xl border border-slate-100 overflow-hidden">
+                    <div class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-violet-50 to-indigo-50 border-b border-slate-100">
+                        <div class="w-7 h-7 rounded-lg bg-violet-500 text-white flex items-center justify-center">
+                            <i class="ph-fill ph-sparkle text-xs"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-violet-700 uppercase tracking-widest">Générer avec une IA</h4>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-xs text-slate-500 leading-relaxed mb-3">Pas d'idée de JSON ? Copiez ce prompt dans <span class="font-semibold text-slate-700">Claude</span> ou <span class="font-semibold text-slate-700">ChatGPT</span>, décrivez vos tâches, puis collez le résultat ci-dessous.</p>
+                        <button onclick="copyImportPrompt()"
+                            class="w-full py-2.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm transition shadow-md shadow-violet-500/20 flex items-center justify-center gap-2 group">
+                            <i class="ph-fill ph-sparkle text-base group-hover:rotate-12 transition-transform duration-300"></i>
+                            Copier le prompt IA
+                        </button>
+                    </div>
+                </div>
+
+                <!-- JSON input block -->
+                <div class="rounded-2xl border border-slate-100 overflow-hidden">
+                    <div class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-100">
+                        <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center">
+                            <i class="ph-bold ph-code text-xs"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-blue-700 uppercase tracking-widest">Coller le JSON</h4>
+                    </div>
+                    <div class="p-4">
+                        <textarea id="import-json-input"
+                            class="w-full h-48 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-slate-700 font-mono text-xs"
+                            placeholder='[&#10;  { "content": "Ma carte", "list": "À faire", "members": ["Alice"] },&#10;  { "content": "Une autre carte", "labels": ["Urgent"] }&#10;]'></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex-shrink-0">
                 <button onclick="processImport()" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2">
                     <i class="ph-bold ph-check"></i> Importer maintenant
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════ AI TIP -->
+    <div id="ai-tip" class="modal hidden fixed inset-0 bg-black/60 z-[90] flex items-center justify-center backdrop-blur-sm p-4">
+        <div id="ai-tip-content" class="bg-white/90 backdrop-blur-xl border border-white/40 w-full max-w-xl rounded-2xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0 duration-200">
+
+            <!-- Top colour bar -->
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 z-10"></div>
+
+            <!-- Close button -->
+            <button onclick="dismissAiTip()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition z-10 bg-white/70 rounded-full p-1 hover:bg-red-50">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+
+            <!-- Header -->
+            <div class="pt-8 pb-4 px-8 text-center flex-shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-violet-500/30">
+                    <i class="ph-fill ph-sparkle text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-1">Créez votre tableau en quelques secondes</h3>
+                <p class="text-sm text-slate-400">Laissez une IA faire le travail à votre place — sans rien saisir à la main.</p>
+            </div>
+
+            <!-- Scrollable content -->
+            <div class="px-6 pb-6 overflow-y-auto custom-scrollbar space-y-4">
+
+                <!-- Why section -->
+                <div class="rounded-2xl border border-slate-100 overflow-hidden">
+                    <div class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-violet-50 to-indigo-50 border-b border-slate-100">
+                        <div class="w-7 h-7 rounded-lg bg-violet-500 text-white flex items-center justify-center">
+                            <i class="ph-bold ph-question text-xs"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-violet-700 uppercase tracking-widest">Pourquoi l'utiliser ?</h4>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="ph-bold ph-clock text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-700">Gagnez un temps fou</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Créer 20 cartes à la main prend 10 minutes. Avec l'IA, c'est 30 secondes.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="ph-bold ph-users text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-700">Parfait pour les équipes</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Répartissez les tâches entre membres, l'IA assigne tout automatiquement.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="ph-bold ph-magic-wand text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-700">S'adapte à votre tableau</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Le prompt généré inclut vos colonnes, membres et étiquettes existants.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How section -->
+                <div class="rounded-2xl border border-slate-100 overflow-hidden">
+                    <div class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-slate-100">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-500 text-white flex items-center justify-center">
+                            <i class="ph-bold ph-list-numbers text-xs"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-indigo-700 uppercase tracking-widest">Comment ça marche ?</h4>
+                    </div>
+                    <div class="p-4 space-y-2.5">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                            <p class="text-sm text-slate-600">Cliquez sur <span class="font-semibold text-slate-800">Importer</span> puis <span class="font-semibold text-slate-800">Copier le prompt IA</span></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                            <p class="text-sm text-slate-600">Collez le prompt dans <span class="font-semibold text-slate-800">Claude</span> ou <span class="font-semibold text-slate-800">ChatGPT</span> et décrivez votre projet</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">3</span>
+                            <p class="text-sm text-slate-600">Copiez le JSON généré et collez-le dans la zone d'import</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3 flex-shrink-0">
+                <button onclick="dismissAiTip()" class="flex-1 bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800 font-medium py-2.5 rounded-xl transition shadow-sm text-sm">
+                    Plus tard
+                </button>
+                <button onclick="tryAiImport()" class="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-violet-500/30 text-sm flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-sparkle"></i>
+                    Essayer maintenant
+                </button>
+            </div>
+
         </div>
     </div>
 
@@ -373,7 +513,8 @@
                 <div class="w-full mr-4">
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Titre de la carte</label>
                     <input type="text" id="modal-title-input"
-                        class="w-full font-bold text-lg bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white rounded px-2 py-1 transition outline-none text-slate-800 mb-2">
+                        class="w-full font-bold text-lg bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white rounded px-2 py-1 transition outline-none text-slate-800 mb-2"
+                        onkeydown="if(event.key === 'Enter') { this.blur(); event.preventDefault(); }">
                     <div class="px-2">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-full text-xs font-medium text-blue-700 shadow-sm">
                             <i class="ph-bold ph-list-dashes"></i> Dans la liste <span id="modal-list-name" class="font-bold"></span>

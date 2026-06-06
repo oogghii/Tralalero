@@ -2,11 +2,6 @@
  * UI.JS
  * Generic UI utilities: toast notifications, confirm dialog,
  * share modal, and pure helper functions (generateId, getInitials).
- *
- * Fixes applied:
- *  - showToast now handles 'blue' colour correctly (#5)
- *  - getInitials uses a safer implementation that never throws (#6)
- *  - showConfirm button labels are now in French (#1)
  */
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -126,12 +121,12 @@ function showConfirm(title, message, callback, isDestructive = true) {
 
     if (isDestructive) {
         newBtn.className  = 'px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-500/30 transition w-full';
-        newBtn.innerText  = 'Supprimer'; // FIX #1 — was English "Delete"
+        newBtn.innerText  = 'Supprimer';
         iconContainer.className = 'w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-red-500/30';
         iconContainer.innerHTML = '<i class="ph-bold ph-warning text-2xl"></i>';
     } else {
         newBtn.className  = 'px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/30 transition w-full';
-        newBtn.innerText  = 'Confirmer'; // FIX #1 — was English "Confirm"
+        newBtn.innerText  = 'Confirmer';
         iconContainer.className = 'w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-blue-500/30';
         iconContainer.innerHTML = '<i class="ph-bold ph-info text-2xl"></i>';
     }
@@ -198,6 +193,10 @@ function getCurrentIdentity() {
     return localStorage.getItem(getIdentityKey()) || null;
 }
 
+function getAuthorId() {
+    return getCurrentIdentity() || 'anonymous';
+}
+
 function setIdentity(id) {
     localStorage.setItem(getIdentityKey(), id);
     closeIdentityModal();
@@ -236,7 +235,7 @@ function updateIdentityUI() {
     } else {
         const member = (settings.members || []).find(m => m.id === current);
         if (member) {
-            const colorClass = (typeof AVATAR_COLORS !== 'undefined' && AVATAR_COLORS[member.colorName]) ? AVATAR_COLORS[member.colorName] : 'bg-slate-500';
+            const colorClass = AVATAR_COLORS[member.colorName] || 'bg-slate-500';
             avatarEl.className = `w-7 h-7 rounded-full text-white flex items-center justify-center text-xs font-bold shadow-inner ${colorClass}`;
             avatarEl.innerText = member.initials || '?';
             nameEl.innerText = member.name;
@@ -288,7 +287,7 @@ function renderIdentityModalMembers() {
     const current = getCurrentIdentity();
     
     list.innerHTML = members.map(m => {
-        const colorClass = (typeof AVATAR_COLORS !== 'undefined' && AVATAR_COLORS[m.colorName]) ? AVATAR_COLORS[m.colorName] : 'bg-slate-500';
+        const colorClass = AVATAR_COLORS[m.colorName] || 'bg-slate-500';
         const isSelected = m.id === current;
         const ringClass = isSelected ? 'ring-2 ring-indigo-500 ring-offset-1' : '';
         const bgClass = isSelected ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30';
@@ -352,6 +351,15 @@ function createIdentity() {
 
 // ─── Global Keyboard Shortcuts ───────────────────────────────────────────────
 
+function isInputFocused() {
+    const active = document.activeElement;
+    return active && (
+        active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        active.isContentEditable
+    );
+}
+
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         const confirmModal = document.getElementById('confirm-modal');
@@ -377,6 +385,12 @@ document.addEventListener('keydown', (e) => {
             if (typeof closeSettingsModal === 'function') closeSettingsModal(null, true);
             return;
         }
+
+        const appearanceModal = document.getElementById('appearance-modal');
+        if (appearanceModal && !appearanceModal.classList.contains('hidden')) {
+            if (typeof closeAppearanceModal === 'function') closeAppearanceModal(null, true);
+            return;
+        }
         
         const importModal = document.getElementById('import-modal');
         if (importModal && !importModal.classList.contains('hidden')) {
@@ -389,6 +403,23 @@ document.addEventListener('keydown', (e) => {
             closeShareModal(null, true);
             return;
         }
+
+        if (typeof currentDropdown !== 'undefined' && currentDropdown) {
+            currentDropdown.classList.add('hidden');
+            currentDropdown = null;
+            return;
+        }
+
+        if (typeof isChatOpen !== 'undefined' && isChatOpen) {
+            if (typeof toggleChat === 'function') toggleChat();
+            return;
+        }
+
+        const sidebar = document.getElementById('activity-sidebar');
+        if (sidebar && !sidebar.classList.contains('translate-x-full')) {
+            if (typeof toggleActivitySidebar === 'function') toggleActivitySidebar();
+            return;
+        }
     }
 });
 
@@ -398,6 +429,31 @@ document.addEventListener('keydown', (e) => {
         if (cardModal && !cardModal.classList.contains('hidden')) {
             e.preventDefault();
             if (typeof saveCardFromModal === 'function') saveCardFromModal(true);
+        }
+    }
+});
+
+// Shortcuts: '/' focuses search, 'N'/'Alt+N' opens add-column (both require no input focused)
+document.addEventListener('keydown', (e) => {
+    if (isInputFocused()) return;
+
+    if (e.key === '/') {
+        const searchInput = document.getElementById('search-filter');
+        if (searchInput) {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+        return;
+    }
+
+    const isAltN  = e.altKey && (e.key === 'n' || e.key === 'N');
+    const isJustN = (e.key === 'n' || e.key === 'N') && !e.altKey && !e.ctrlKey && !e.metaKey;
+    if (isAltN || isJustN) {
+        const addColBtn = document.getElementById('add-col-btn');
+        if (addColBtn && !addColBtn.classList.contains('hidden')) {
+            e.preventDefault();
+            if (typeof showAddColumnInput === 'function') showAddColumnInput(addColBtn);
         }
     }
 });

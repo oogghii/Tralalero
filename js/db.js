@@ -1,14 +1,9 @@
 /**
  * DB.JS
  * All Supabase database operations:
- *   - connectToBoard  : fetch board + subscribe to realtime changes
- *   - initializeNewBoard : insert a new empty board row
- *   - saveToSupabase  : upsert current boardData & settings
- *
- * Fixes applied:
- *  - Renamed saveToFirebase → saveToSupabase (#3)
- *  - connectToBoard called after createNewBoardAction no longer
- *    clobbers the already-rendered optimistic UI (#7)
+ *   - connectToBoard      : fetch board + subscribe to realtime changes
+ *   - initializeNewBoard  : insert a new empty board row
+ *   - saveToSupabase      : upsert current boardData & settings
  */
 
 /**
@@ -68,6 +63,7 @@ async function connectToBoard(boardId, skipInitialRender = false) {
 
     // Always prompt for identity (new board or joined board)
     if (typeof checkAndPromptIdentity === 'function') checkAndPromptIdentity();
+    if (typeof showAiTip === 'function') showAiTip();
 
     // ─── Subscribe to realtime changes ───────────────────────────────────────
     try {
@@ -155,7 +151,6 @@ function performNaiveMerge(remoteBoard, localBoard) {
             const rComments = remoteCards[id].comments || [];
             const lComments = localCards[id].comments || [];
             if (rComments.length > lComments.length) {
-                // simple append
                 const lIds = new Set(lComments.map(c => c.id));
                 rComments.forEach(rc => {
                     if (!lIds.has(rc.id)) lComments.push(rc);
@@ -186,6 +181,7 @@ async function saveToSupabase() {
     const mutationId = generateId();
     lastMutationId = mutationId;
     recentMutations.add(mutationId);
+    if (recentMutations.size > 20) recentMutations.delete(recentMutations.values().next().value);
     setTimeout(() => recentMutations.delete(mutationId), 10000);
 
     if (!settings) settings = {};
@@ -204,9 +200,8 @@ async function saveToSupabase() {
 
         if (remoteData && remoteData.settings && remoteData.settings.lastMutationId !== lastMutationId && !recentMutations.has(remoteData.settings.lastMutationId)) {
             payloadBoard = performNaiveMerge(remoteData.board_data, boardData);
-            // Merge settings
             payloadSettings = { ...remoteData.settings, ...settings };
-            payloadSettings.lastMutationId = mutationId; // Keep our new mutation ID
+            payloadSettings.lastMutationId = mutationId;
         }
 
         const payload = {

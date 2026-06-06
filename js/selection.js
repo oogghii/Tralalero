@@ -140,72 +140,44 @@ function renderBulkDropdowns() {
     labContainer.innerHTML = labHtml;
 }
 
-function bulkToggleMember(memberId) {
+function bulkToggleProperty(propKey, itemId, toastAdd, toastRemove, toastColor) {
     if (selectedCards.length === 0) return;
-    
+
     let allHaveIt = true;
     const cardsToUpdate = [];
-    
+
     selectedCards.forEach(selection => {
         const col = boardData.find(c => c.id === selection.colId);
         if (col) {
             const card = col.cards.find(c => c.id === selection.cardId);
             if (card) {
                 cardsToUpdate.push(card);
-                if (!card.members || !card.members.includes(memberId)) {
-                    allHaveIt = false;
-                }
+                if (!(card[propKey] || []).includes(itemId)) allHaveIt = false;
             }
         }
     });
 
     cardsToUpdate.forEach(card => {
-        if (!card.members) card.members = [];
+        if (!card[propKey]) card[propKey] = [];
         if (allHaveIt) {
-            card.members = card.members.filter(id => id !== memberId);
-        } else {
-            if (!card.members.includes(memberId)) card.members.push(memberId);
+            card[propKey] = card[propKey].filter(id => id !== itemId);
+        } else if (!card[propKey].includes(itemId)) {
+            card[propKey].push(itemId);
         }
     });
 
     saveToSupabase();
     renderBoard();
     renderBulkDropdowns();
-    showToast(allHaveIt ? 'Membre retiré' : 'Membre assigné', 'blue');
+    showToast(allHaveIt ? toastRemove : toastAdd, toastColor);
+}
+
+function bulkToggleMember(memberId) {
+    bulkToggleProperty('members', memberId, 'Membre assigné', 'Membre retiré', 'blue');
 }
 
 function bulkToggleLabel(labelId) {
-    if (selectedCards.length === 0) return;
-    
-    let allHaveIt = true;
-    const cardsToUpdate = [];
-    
-    selectedCards.forEach(selection => {
-        const col = boardData.find(c => c.id === selection.colId);
-        if (col) {
-            const card = col.cards.find(c => c.id === selection.cardId);
-            if (card) {
-                cardsToUpdate.push(card);
-                if (!card.labels || !card.labels.includes(labelId)) {
-                    allHaveIt = false;
-                }
-            }
-        }
-    });
-
-    cardsToUpdate.forEach(card => {
-        if (!card.labels) card.labels = [];
-        if (allHaveIt) {
-            card.labels = card.labels.filter(id => id !== labelId);
-        } else {
-            if (!card.labels.includes(labelId)) card.labels.push(labelId);
-        }
-    });
-
-    saveToSupabase();
-    renderBoard();
-    renderBulkDropdowns();
-    showToast(allHaveIt ? 'Étiquette retirée' : 'Étiquette assignée', 'indigo');
+    bulkToggleProperty('labels', labelId, 'Étiquette assignée', 'Étiquette retirée', 'indigo');
 }
 
 function cancelSelection() {

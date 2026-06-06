@@ -8,7 +8,22 @@
  *   - renderFilterChips     : active filter chips in the header
  */
 
+let _lastNewCardTimeout = null;
+
 // --- Board -------------------------------------------------------------------
+
+const ACCENT_COLORS = [
+    { color: '#ef4444', label: 'Rouge'    },
+    { color: '#f97316', label: 'Orange'   },
+    { color: '#eab308', label: 'Jaune'    },
+    { color: '#22c55e', label: 'Vert'     },
+    { color: '#14b8a6', label: 'Sarcelle' },
+    { color: '#3b82f6', label: 'Bleu'     },
+    { color: '#8b5cf6', label: 'Violet'   },
+    { color: '#ec4899', label: 'Rose'     },
+    { color: '#64748b', label: 'Gris'     },
+    { color: '',        label: 'Aucune'   },
+];
 
 function renderBoard() {
     renderFilters();
@@ -31,20 +46,6 @@ function renderBoard() {
 
     // Remove existing column elements before re-rendering
     boardEl.querySelectorAll('[data-col-id]').forEach(el => el.remove());
-
-    // Accent colours available for columns
-    const ACCENT_COLORS = [
-        { color: '#ef4444', label: 'Rouge'    },
-        { color: '#f97316', label: 'Orange'   },
-        { color: '#eab308', label: 'Jaune'    },
-        { color: '#22c55e', label: 'Vert'     },
-        { color: '#14b8a6', label: 'Sarcelle' },
-        { color: '#3b82f6', label: 'Bleu'     },
-        { color: '#8b5cf6', label: 'Violet'   },
-        { color: '#ec4899', label: 'Rose'     },
-        { color: '#64748b', label: 'Gris'     },
-        { color: '',        label: 'Aucune'   },
-    ];
 
     boardData.forEach((col) => {
         const isCollapsed = collapsedCols.has(col.id);
@@ -298,8 +299,11 @@ function renderBoard() {
         }
     });
 
-    // Clear pop-in marker after one render cycle
-    if (lastNewCardId) setTimeout(() => { lastNewCardId = null; }, 700);
+    // Clear pop-in marker after one render cycle (clear any previous timeout to avoid accumulation)
+    if (lastNewCardId) {
+        clearTimeout(_lastNewCardTimeout);
+        _lastNewCardTimeout = setTimeout(() => { lastNewCardId = null; }, 700);
+    }
 
     if (typeof initSortable === 'function') initSortable();
 }
@@ -419,20 +423,11 @@ function renderFilterChips() {
     container.classList.toggle('hidden', chips.length === 0);
 }
 
-/** Count how many cards on the board use a given label ID. */
-function countLabelUsage(labelId) {
+/** Count how many cards on the board have a given ID in a given property array. */
+function countPropertyUsage(propKey, id) {
     let count = 0;
     boardData.forEach(col => col.cards.forEach(card => {
-        if ((card.labels || []).includes(labelId)) count++;
-    }));
-    return count;
-}
-
-/** Count how many cards on the board have a given member ID assigned. */
-function countMemberUsage(memberId) {
-    let count = 0;
-    boardData.forEach(col => col.cards.forEach(card => {
-        if ((card.members || []).includes(memberId)) count++;
+        if ((card[propKey] || []).includes(id)) count++;
     }));
     return count;
 }
@@ -448,7 +443,7 @@ function renderSettingsList() {
         ? `<p class="si-empty">Aucune étiquette — créez-en une ci-dessous !</p>`
         : labels.map(l => {
             const cfg        = LABEL_COLOR_CONFIG[l.colorName] || LABEL_COLOR_CONFIG['slate'];
-            const count      = countLabelUsage(l.id);
+            const count      = countPropertyUsage('labels', l.id);
             const pickerOpen = openLabelPickerId === l.id;
             const renaming   = renamingLabelId   === l.id;
 
@@ -512,7 +507,7 @@ function renderSettingsList() {
         ? `<p class="si-empty">Aucun membre — ajoutez-en un ci-dessous !</p>`
         : members.map(m => {
             const cfg        = AVATAR_COLOR_CONFIG[m.colorName] || AVATAR_COLOR_CONFIG['slate'];
-            const count      = countMemberUsage(m.id);
+            const count      = countPropertyUsage('members', m.id);
             const panelOpen  = openMemberPanelId === m.id;
             const renaming   = renamingMemberId  === m.id;
 

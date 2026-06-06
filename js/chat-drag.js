@@ -38,35 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatHeader.style.cursor = 'grabbing';
     });
 
-    document.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            e.preventDefault();
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            
-            let newLeft = initialLeft + dx;
-            let newTop = initialTop + dy;
-            
-            const maxLeft = window.innerWidth - chatWidget.offsetWidth;
-            const maxTop = window.innerHeight - chatWidget.offsetHeight;
-            
-            if (newLeft < 0) newLeft = 0;
-            if (newTop < 0) newTop = 0;
-            if (newLeft > maxLeft) newLeft = maxLeft;
-            if (newTop > maxTop) newTop = maxTop;
-
-            chatWidget.style.left = newLeft + 'px';
-            chatWidget.style.top = newTop + 'px';
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (isDragging) {
-            isDragging = false;
-            chatHeader.style.cursor = 'grab';
-            chatWidget.style.transition = 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out';
-        }
-    });
 
     chatHeader.style.cursor = 'grab';
 
@@ -109,30 +80,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('mousemove', (e) => {
-        if (isResizing) {
+        if (isDragging) {
             e.preventDefault();
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
-
-            let newWidth = initialWidth;
+            let newLeft = initialLeft + dx;
+            let newTop  = initialTop  + dy;
+            const maxLeft = window.innerWidth  - chatWidget.offsetWidth;
+            const maxTop  = window.innerHeight - chatWidget.offsetHeight;
+            if (newLeft < 0) newLeft = 0;
+            if (newTop  < 0) newTop  = 0;
+            if (newLeft > maxLeft) newLeft = maxLeft;
+            if (newTop  > maxTop)  newTop  = maxTop;
+            chatWidget.style.left = newLeft + 'px';
+            chatWidget.style.top  = newTop  + 'px';
+        } else if (isResizing) {
+            e.preventDefault();
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            let newWidth  = initialWidth;
             let newHeight = initialHeight;
-            let newLeft = initialLeft;
-            let newTop = initialTop;
-
-            const minWidth = 280;
-            const minHeight = 350;
-
+            let newLeft   = initialLeft;
+            let newTop    = initialTop;
+            const minWidth = 280, minHeight = 350;
             if (currentHandle.includes('r')) newWidth = initialWidth + dx;
-            if (currentHandle.includes('l')) {
-                newWidth = initialWidth - dx;
-                newLeft = initialLeft + dx;
-            }
+            if (currentHandle.includes('l')) { newWidth = initialWidth - dx; newLeft = initialLeft + dx; }
             if (currentHandle.includes('b')) newHeight = initialHeight + dy;
-            if (currentHandle.includes('t')) {
-                newHeight = initialHeight - dy;
-                newTop = initialTop + dy;
-            }
-
+            if (currentHandle.includes('t')) { newHeight = initialHeight - dy; newTop = initialTop + dy; }
             if (newWidth < minWidth) {
                 if (currentHandle.includes('l')) newLeft = initialLeft + (initialWidth - minWidth);
                 newWidth = minWidth;
@@ -141,16 +115,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentHandle.includes('t')) newTop = initialTop + (initialHeight - minHeight);
                 newHeight = minHeight;
             }
-
-            chatWidget.style.width = newWidth + 'px';
+            chatWidget.style.width  = newWidth  + 'px';
             chatWidget.style.height = newHeight + 'px';
-            chatWidget.style.left = newLeft + 'px';
-            chatWidget.style.top = newTop + 'px';
+            chatWidget.style.left   = newLeft   + 'px';
+            chatWidget.style.top    = newTop    + 'px';
         }
     });
 
     document.addEventListener('mouseup', () => {
-        if (isResizing) {
+        if (isDragging) {
+            isDragging = false;
+            chatHeader.style.cursor = 'grab';
+            chatWidget.style.transition = 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out';
+        } else if (isResizing) {
             isResizing = false;
             currentHandle = null;
             chatWidget.style.transition = 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out';
